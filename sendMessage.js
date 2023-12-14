@@ -1,58 +1,39 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
-require('dotenv').config()
+require('dotenv').config();
 
 const MENSAGENS_FILE_PATH = './mensagens.json';
 
 const client = new Client({
   authStrategy: new LocalAuth()
-})
+});
 
 client.on('qr', qr => {
   qrcode.generate(qr, { small: true });
 });
 
-client.on('authenticated', (session) => console.log(`Autenticado`))
+client.on('authenticated', (session) => console.log(`Autenticado`));
 
 client.on('ready', () => {
-  console.log('O LoveNotes está pronto Não esquece da estrelinha no repo ⭐ by: Anderson Teala ☕👨🏻‍💻');
-  enviarMensagemAleatoria(); // Iniciar o envio de mensagens aleatórias
+  console.log('O LoveNotes está pronto. Não esqueça da estrelinha no repo ⭐ by: Anderson Teala ☕👨🏻‍💻');
+  enviarMensagem(); // Enviar a mensagem para os números especificados
 });
 
 client.initialize();
 
-let arrayMensagensBonitas = [];
+let MensagensBonitas = ['Sua mensagem fixa aqui'];
 
-if (fs.existsSync(MENSAGENS_FILE_PATH)) {
-  arrayMensagensBonitas = require(MENSAGENS_FILE_PATH);
-}
+const phoneNumbers = process.env.PHONE_NUMBERS.split(',');
 
-let mensagensEnviadas = [];
-
-const enviarMensagemAleatoria = () => {
-  setInterval(() => {
-    // Verificar se todas as mensagens foram enviadas
-    if (mensagensEnviadas.length === arrayMensagensBonitas.length) {
-      console.log("Todas as mensagens foram enviadas.");
-      return;
-    }
-
-    let mensagemAleatoria;
-
-    do {
-      const indiceAleatorio = Math.floor(Math.random() * arrayMensagensBonitas.length);
-      mensagemAleatoria = arrayMensagensBonitas[indiceAleatorio];
-    } while (mensagensEnviadas.includes(mensagemAleatoria)); // Verificar se a mensagem já foi enviada
-
-    mensagensEnviadas.push(mensagemAleatoria); // Adicionar a mensagem enviada ao array
-
+const enviarMensagem = () => {
+  phoneNumbers.forEach(async (phoneNumber) => {
     try {
       // Enviar a mensagem para o número desejado
-      client.sendMessage(process.env.PHONE_NUMBER, mensagemAleatoria);
-      console.log(`Mensagem enviada: ${mensagemAleatoria}`);
+      await client.sendMessage(phoneNumber, MensagensBonitas[0]); // Envie a única mensagem definida
+      console.log(`Mensagem enviada para ${phoneNumber}: ${MensagensBonitas[0]}`);
     } catch (error) {
-      console.log(error);
+      console.log(`Erro ao enviar mensagem para ${phoneNumber}:`, error);
     }
-  }, process.env.TIME_INTERVAL);
+  });
 };
